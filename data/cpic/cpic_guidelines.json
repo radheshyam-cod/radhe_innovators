@@ -1,0 +1,74 @@
+{
+  "CYP2D6_codeine": {
+    "text": "Codeine is a prodrug that requires conversion to morphine by CYP2D6 for analgesic effect. CYP2D6 poor metabolizers have reduced conversion, resulting in inadequate pain relief. Ultrarapid metabolizers convert codeine to morphine too quickly, increasing risk of toxicity including respiratory depression, particularly in children.",
+    "evidence_level": "A",
+    "population": "General population",
+    "clinical_impact": "High",
+    "recommendations": [
+      "Avoid codeine in CYP2D6 ultrarapid metabolizers",
+      "Consider alternative analgesics in poor metabolizers",
+      "Monitor for respiratory depression in ultrarapid metabolizers",
+      "Use standard dosing for normal and intermediate metabolizers"
+    ]
+  },
+  "CYP2C19_clopidogrel": {
+    "text": "Clopidogrel is a prodrug that requires activation by CYP2C19. Poor metabolizers have reduced activation, leading to higher rates of major adverse cardiovascular events including stent thrombosis. Alternative antiplatelet agents should be considered for these patients.",
+    "evidence_level": "A",
+    "population": "Cardiovascular patients",
+    "clinical_impact": "High",
+    "recommendations": [
+      "Consider prasugrel or ticagrelor in poor metabolizers",
+      "Avoid clopidogrel monotherapy in poor metabolizers",
+      "Standard dosing appropriate for normal metabolizers",
+      "Monitor for treatment failure in poor metabolizers"
+    ]
+  },
+  "CYP2C9_warfarin": {
+    "text": "Warfarin metabolism is significantly influenced by CYP2C9 genotype. Poor metabolizers require substantially lower doses to avoid bleeding complications. Genetic testing should be performed before warfarin initiation to guide initial dosing.",
+    "evidence_level": "A",
+    "population": "Patients requiring anticoagulation",
+    "clinical_impact": "High",
+    "recommendations": [
+      "Reduce starting dose by 90-95% in poor metabolizers",
+      "Reduce starting dose by 50-75% in intermediate metabolizers",
+      "Monitor INR closely in all patients",
+      "Consider alternative anticoagulants in high-risk patients"
+    ]
+  },
+  "SLCO1B1_simvastatin": {
+    "text": "SLCO1B1 variants affect statin transport into the liver. Patients with reduced function variants have higher systemic exposure, increasing risk of myopathy and rhabdomyolysis. The risk is dose-dependent and highest with simvastatin.",
+    "evidence_level": "A",
+    "population": "Patients on statin therapy",
+    "clinical_impact": "Moderate to High",
+    "recommendations": [
+      "Limit simvastatin dose to 20mg daily in poor transporters",
+      "Consider alternative statins in high-risk patients",
+      "Monitor CK levels in patients with muscle symptoms",
+      "Educate patients about myopathy symptoms"
+    ]
+  },
+  "TPMT_thiopurines": {
+    "text": "Thiopurine methyltransferase (TPMT) metabolizes azathioprine and 6-mercaptopurine. Deficient patients have severe myelosuppression risk including life-threatening infections. Dose reduction based on genotype is essential for safety.",
+    "evidence_level": "A",
+    "population": "Patients with autoimmune diseases",
+    "clinical_impact": "High",
+    "recommendations": [
+      "Reduce starting dose by 90% in TPMT-deficient patients",
+      "Reduce starting dose by 30-70% in intermediate metabolizers",
+      "Monitor blood counts closely during therapy",
+      "Consider alternative immunosuppressants in deficient patients"
+    ]
+  },
+  "DPYD_fluoropyrimidines": {
+    "text": "DPYD deficiency leads to severe and potentially fatal toxicity from fluoropyrimidine chemotherapy including 5-fluorouracil and capecitabine. Pre-treatment testing is recommended to identify high-risk patients and prevent severe toxicity.",
+    "evidence_level": "A",
+    "population": "Cancer patients",
+    "clinical_impact": "High",
+    "recommendations": [
+      "Avoid fluoropyrimidines in DPYD-deficient patients",
+      "Reduce dose by 50% in intermediate metabolizers",
+      "Monitor for severe toxicity in all patients",
+      "Consider alternative chemotherapy regimens"
+    ]
+  }
+}

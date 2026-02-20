@@ -1,0 +1,69 @@
+{
+  "name": "CYP2D6",
+  "alleles": [
+    {
+      "name": "*1",
+      "variants": [],
+      "activity": 1.0,
+      "description": "Wild-type allele with normal activity"
+    },
+    {
+      "name": "*2",
+      "variants": [
+        {"chrom": "22", "pos": 42524946, "ref": "G", "alt": "A"},
+        {"chrom": "22", "pos": 42526231, "ref": "C", "alt": "T"}
+      ],
+      "activity": 1.0,
+      "description": "Normal activity allele"
+    },
+    {
+      "name": "*4",
+      "variants": [
+        {"chrom": "22", "pos": 42524946, "ref": "G", "alt": "A"}
+      ],
+      "activity": 0.0,
+      "description": "No activity allele"
+    },
+    {
+      "name": "*5",
+      "variants": [
+        {"chrom": "22", "pos": 42526231, "ref": "C", "alt": "T"}
+      ],
+      "activity": 0.0,
+      "description": "Gene deletion, no activity"
+    },
+    {
+      "name": "*10",
+      "variants": [
+        {"chrom": "22", "pos": 42524946, "ref": "G", "alt": "A"}
+      ],
+      "activity": 0.25,
+      "description": "Reduced activity allele"
+    },
+    {
+      "name": "*17",
+      "variants": [
+        {"chrom": "22", "pos": 42524946, "ref": "G", "alt": "A"},
+        {"chrom": "22", "pos": 42526231, "ref": "C", "alt": "T"}
+      ],
+      "activity": 0.5,
+      "description": "Reduced activity allele"
+    },
+    {
+      "name": "*41",
+      "variants": [
+        {"chrom": "22", "pos": 42524946, "ref": "G", "alt": "A"}
+      ],
+      "activity": 0.25,
+      "description": "Reduced activity allele"
+    },
+    {
+      "name": "*1xN",
+      "variants": [
+        {"chrom": "22", "pos": 42524946, "ref": "G", "alt": "A"}
+      ],
+      "activity": 2.0,
+      "description": "Gene duplication, ultrarapid metabolism"
+    }
+  ]
+}
