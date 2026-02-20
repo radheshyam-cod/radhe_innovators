@@ -4,6 +4,9 @@ import { Navigation } from '@/components/Navigation'
 import { SecurityProvider } from '@/providers/SecurityProvider'
 import { MotionProvider } from '@/providers/MotionProvider'
 import { ToastProvider } from '@/providers/ToastProvider'
+import { ThemeProvider } from '@/providers/ThemeProvider'
+import { NotificationProvider } from '@/providers/NotificationProvider'
+import Footer from '@/components/Footer'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 const spaceGrotesk = Space_Grotesk({
@@ -34,16 +37,21 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable}`}>
       <body className="font-sans bg-black text-[#D9D9D9] antialiased">
-        <SecurityProvider>
-          <MotionProvider>
-            <ToastProvider>
-              <Navigation />
-              <main className="min-h-screen">
-                {children}
-              </main>
-            </ToastProvider>
-          </MotionProvider>
-        </SecurityProvider>
+        <ThemeProvider>
+          <SecurityProvider>
+            <NotificationProvider>
+              <MotionProvider>
+                <ToastProvider>
+                  <Navigation />
+                  <main className="min-h-screen">
+                    {children}
+                  </main>
+                  <Footer />
+                </ToastProvider>
+              </MotionProvider>
+            </NotificationProvider>
+          </SecurityProvider>
+        </ThemeProvider>
       </body>
     </html>
   )

@@ -5,6 +5,9 @@ import { motion } from 'framer-motion'
 import { DownloadIcon, ActivityIcon, FileTextIcon, PillIcon, AlertTriangleIcon, CopyIcon, FileJsonIcon, ChevronDownIcon, ChevronUpIcon } from 'lucide-react'
 import SeverityBadge from '@/components/SeverityBadge'
 import LLMExplanationBlock from '@/components/LLMExplanationBlock'
+import PDFExportButton from '@/components/PDFExportButton'
+import ShareReport from '@/components/ShareReport'
+import CopyButton from '@/components/CopyButton'
 
 // We estimate a risk score 0-100 based on the severity
 const getRiskScore = (severity: string): number => {
@@ -88,7 +91,18 @@ export default function DetailedResults({ analysisResult, expandedDrugs = {}, to
     }
 
     const handlePrintPDF = () => {
-        window.print()
+        // Expand all drug sections before printing
+        const prevExpanded = toggleDrugExpanded ? { ...expandedDrugs } : { ...localExpanded }
+        const allExpanded: Record<string, boolean> = {}
+        results.forEach((r: any) => allExpanded[r.drug] = true)
+        if (toggleDrugExpanded) {
+            results.forEach((r: any) => { if (!expandedDrugs[r.drug]) toggleDrugExpanded(r.drug) })
+        } else {
+            setLocalExpanded(allExpanded)
+        }
+        setTimeout(() => {
+            window.print()
+        }, 100)
     }
 
     const handleDownloadJSON = () => {
@@ -112,22 +126,33 @@ export default function DetailedResults({ analysisResult, expandedDrugs = {}, to
 
     if (!results.length) return null
 
+    // Extract patient-level info
+    const patientId = analysisResult.patient_id || results[0]?.patient_id || 'PATIENT_UNKNOWN'
+    const timestamp = analysisResult.timestamp || results[0]?.timestamp || new Date().toISOString()
+
     return (
         <div className="space-y-12">
+            {/* ===== PRINT-ONLY: Full Report Header ===== */}
+            <div className="hidden print:block mb-8 border-b-2 border-gray-300 pb-6">
+                <div className="flex justify-between items-start">
+                    <div>
+                        <h1 className="text-3xl font-bold text-black font-space-grotesk">GeneDose.ai</h1>
+                        <p className="text-sm text-gray-600">Clinical Decision Support — Pharmacogenomics Report</p>
+                    </div>
+                    <div className="text-right text-sm text-gray-600">
+                        <p><strong>Patient ID:</strong> {patientId}</p>
+                        <p><strong>Generated:</strong> {new Date(timestamp).toLocaleString()}</p>
+                        <p><strong>Drugs Analyzed:</strong> {results.length}</p>
+                    </div>
+                </div>
+            </div>
             {/* Header with Download Button */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mt-8 print:hidden">
                 <h2 className="font-space-grotesk font-bold text-3xl text-[#D9D9D9]">
                     Pharmacogenomic Summary Report
                 </h2>
                 <div className="flex flex-wrap items-center gap-3">
-                    <button
-                        onClick={handleCopyJSON}
-                        className="px-4 py-2 bg-gray-800 text-white font-semibold rounded-lg hover:bg-gray-700 flex items-center gap-2 border border-gray-600 transition-colors"
-                        title="Copy JSON to Clipboard"
-                    >
-                        <CopyIcon className="w-5 h-5" />
-                        Copy JSON
-                    </button>
+                    <CopyButton text={JSON.stringify(analysisResult, null, 2)} label="Copy JSON" />
                     <button
                         onClick={handleDownloadJSON}
                         className="px-4 py-2 bg-gray-800 text-white font-semibold rounded-lg hover:bg-gray-700 flex items-center gap-2 border border-gray-600 transition-colors"
@@ -136,12 +161,14 @@ export default function DetailedResults({ analysisResult, expandedDrugs = {}, to
                         <FileJsonIcon className="w-5 h-5" />
                         Download JSON
                     </button>
+                    <PDFExportButton data={analysisResult} />
+                    <ShareReport reportData={analysisResult} reportTitle="GeneDose Pharmacogenomic Report" />
                     <button
                         onClick={handlePrintPDF}
                         className="px-6 py-3 bg-[#39FF14] text-black font-semibold rounded-lg hover:bg-[#39FF14]/80 flex items-center gap-2 hover-lift shadow-lg shadow-[#39FF14]/20"
                     >
                         <DownloadIcon className="w-5 h-5" />
-                        Download PDF Report
+                        Print Report
                     </button>
                 </div>
             </div>
@@ -212,6 +239,84 @@ export default function DetailedResults({ analysisResult, expandedDrugs = {}, to
 
                         {expanded && (
                             <div className="p-6 md:p-8 space-y-10">
+
+                                {/* ===== PRINT-ONLY: Structured Data Table ===== */}
+                                <div className="hidden print:block mb-6">
+                                    <table className="w-full text-sm border-collapse border border-gray-300">
+                                        <tbody>
+                                            <tr className="border-b border-gray-200">
+                                                <td className="font-semibold p-2 bg-gray-100 w-1/3">Patient ID</td>
+                                                <td className="p-2">{result.patient_id || patientId}</td>
+                                            </tr>
+                                            <tr className="border-b border-gray-200">
+                                                <td className="font-semibold p-2 bg-gray-100">Timestamp</td>
+                                                <td className="p-2">{result.timestamp || timestamp}</td>
+                                            </tr>
+                                            <tr className="border-b border-gray-200">
+                                                <td className="font-semibold p-2 bg-gray-100">Risk Label</td>
+                                                <td className="p-2">{riskLabel}</td>
+                                            </tr>
+                                            <tr className="border-b border-gray-200">
+                                                <td className="font-semibold p-2 bg-gray-100">Confidence Score</td>
+                                                <td className="p-2">{result.risk_assessment?.confidence_score ?? 'N/A'}</td>
+                                            </tr>
+                                            <tr className="border-b border-gray-200">
+                                                <td className="font-semibold p-2 bg-gray-100">Severity</td>
+                                                <td className="p-2 uppercase">{severity}</td>
+                                            </tr>
+                                            <tr className="border-b border-gray-200">
+                                                <td className="font-semibold p-2 bg-gray-100">Primary Gene</td>
+                                                <td className="p-2">{result.pharmacogenomic_profile?.primary_gene}</td>
+                                            </tr>
+                                            <tr className="border-b border-gray-200">
+                                                <td className="font-semibold p-2 bg-gray-100">Diplotype</td>
+                                                <td className="p-2">{result.pharmacogenomic_profile?.diplotype}</td>
+                                            </tr>
+                                            <tr className="border-b border-gray-200">
+                                                <td className="font-semibold p-2 bg-gray-100">Phenotype</td>
+                                                <td className="p-2">{result.pharmacogenomic_profile?.phenotype}</td>
+                                            </tr>
+                                            <tr className="border-b border-gray-200">
+                                                <td className="font-semibold p-2 bg-gray-100">Detected Variants</td>
+                                                <td className="p-2">
+                                                    {(result.pharmacogenomic_profile?.detected_variants?.length > 0)
+                                                        ? result.pharmacogenomic_profile.detected_variants.map((v: any, i: number) => (
+                                                            <span key={i} className="mr-2">{v.rsid || `${v.chrom}:${v.pos}`}{i < result.pharmacogenomic_profile.detected_variants.length - 1 ? ', ' : ''}</span>
+                                                        ))
+                                                        : 'None detected'}
+                                                </td>
+                                            </tr>
+                                            <tr className="border-b border-gray-200">
+                                                <td className="font-semibold p-2 bg-gray-100">Dose Adjustment</td>
+                                                <td className="p-2">{result.clinical_recommendation?.dose_adjustment || 'None specified'}</td>
+                                            </tr>
+                                            <tr className="border-b border-gray-200">
+                                                <td className="font-semibold p-2 bg-gray-100">Contraindication</td>
+                                                <td className="p-2">{result.clinical_recommendation?.contraindication ? 'YES ⚠️' : 'No'}</td>
+                                            </tr>
+                                            <tr className="border-b border-gray-200">
+                                                <td className="font-semibold p-2 bg-gray-100">Evidence Level</td>
+                                                <td className="p-2">Level {result.clinical_recommendation?.evidence_level || 'N/A'}</td>
+                                            </tr>
+                                            <tr className="border-b border-gray-200">
+                                                <td className="font-semibold p-2 bg-gray-100">Citations</td>
+                                                <td className="p-2">{result.clinical_recommendation?.citations?.length > 0 ? result.clinical_recommendation.citations.join(', ') : 'None'}</td>
+                                            </tr>
+                                            <tr className="border-b border-gray-200">
+                                                <td className="font-semibold p-2 bg-gray-100">VCF Parsing</td>
+                                                <td className="p-2">{result.quality_metrics?.vcf_parsing_success ? '✅ Success' : '❌ Failed'}</td>
+                                            </tr>
+                                            <tr className="border-b border-gray-200">
+                                                <td className="font-semibold p-2 bg-gray-100">Variant Call Quality</td>
+                                                <td className="p-2 capitalize">{result.quality_metrics?.variant_call_quality || 'N/A'}</td>
+                                            </tr>
+                                            <tr>
+                                                <td className="font-semibold p-2 bg-gray-100">Missing Annotations</td>
+                                                <td className="p-2">{result.quality_metrics?.missing_annotations_handled ? 'Handled ✅' : 'Not handled'}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
 
                                 {/* Top Section: Big Risk Score & Badge */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center bg-black/20 p-6 md:p-8 rounded-2xl print:bg-gray-50 border border-gray-800 print:border-gray-200">
@@ -301,10 +406,18 @@ export default function DetailedResults({ analysisResult, expandedDrugs = {}, to
 
                                 {/* Recommendation Block */}
                                 <div className="bg-[#39FF14]/5 border border-[#39FF14]/20 p-6 md:p-8 rounded-2xl print:bg-green-50 print:border-green-300">
-                                    <h4 className="flex items-center gap-2 text-xl font-bold text-white print:text-black mb-4">
-                                        <FileTextIcon className="w-6 h-6 text-[#39FF14] print:hidden" />
-                                        Guideline Recommendation & Action
-                                    </h4>
+                                    <div className="flex items-center justify-between mb-4">
+                                        <h4 className="flex items-center gap-2 text-xl font-bold text-white print:text-black">
+                                            <FileTextIcon className="w-6 h-6 text-[#39FF14] print:hidden" />
+                                            Guideline Recommendation & Action
+                                        </h4>
+                                        <div className="print:hidden">
+                                            <CopyButton
+                                                text={`${result.drug?.toUpperCase()}: ${result.clinical_recommendation?.recommendation_text || 'N/A'} | Action: ${result.clinical_recommendation?.action || 'N/A'}`}
+                                                label="Copy Rec."
+                                            />
+                                        </div>
+                                    </div>
 
                                     <div className="space-y-4">
                                         <p className="text-[#D9D9D9] print:text-gray-800 text-lg leading-relaxed font-medium">
@@ -358,8 +471,8 @@ export default function DetailedResults({ analysisResult, expandedDrugs = {}, to
                                 )}
 
                                 {/* Advanced LLM Detail (Optional deep dive) */}
-                                <div className="pt-8 border-t border-gray-800 print:hidden">
-                                    <h4 className="text-lg font-bold text-gray-300 mb-4">Deep Dive (AI Generated Exegesis)</h4>
+                                <div className="pt-8 border-t border-gray-800 print:border-gray-300">
+                                    <h4 className="text-lg font-bold text-gray-300 mb-4 print:text-black">LLM-Generated Explanation</h4>
                                     {result.llm_generated_explanation && (
                                         <LLMExplanationBlock
                                             gene={result.pharmacogenomic_profile?.primary_gene || ''}

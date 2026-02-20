@@ -1,324 +1,195 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { 
-  UserIcon, 
-  CreditCardIcon, 
-  AlertTriangleIcon, 
-  CheckCircleIcon, 
-  DownloadIcon, 
-  QrCodeIcon,
-  ShieldCheckIcon,
-  PhoneIcon,
-  CalendarIcon,
-  FileTextIcon
+import {
+  UserCircle, HeartPulse, FileText, Calendar, Mail, Phone,
+  Pill, Activity, AlertTriangle, CheckCircle, Edit3, Save
 } from 'lucide-react'
-import { PatientWalletCard } from '@/types'
+import SeverityBadge from '@/components/SeverityBadge'
 
-const PatientCardPage = () => {
-  const [patientCard, setPatientCard] = useState<PatientWalletCard | null>(null)
-  const [isGenerating, setIsGenerating] = useState(false)
+const MOCK_PATIENT = {
+  id: 'PAT-001',
+  name: 'John Doe',
+  dateOfBirth: '1990-03-15',
+  gender: 'Male',
+  email: 'john.doe@example.com',
+  phone: '+1 (555) 123-4567',
+  bloodType: 'O+',
+  allergies: ['Penicillin', 'Sulfa drugs'],
+  conditions: ['Hypertension', 'Type 2 Diabetes'],
+  currentMedications: [
+    { name: 'Warfarin', dose: '5mg', frequency: 'Once daily', gene: 'CYP2C9', risk: 'adjust' },
+    { name: 'Metformin', dose: '500mg', frequency: 'Twice daily', gene: 'N/A', risk: 'safe' },
+    { name: 'Lisinopril', dose: '10mg', frequency: 'Once daily', gene: 'N/A', risk: 'safe' },
+  ],
+  recentAnalyses: [
+    { id: 'ANL-001', date: '2026-02-19', drugs: ['warfarin', 'codeine'], risk: 'toxic' },
+    { id: 'ANL-002', date: '2026-02-15', drugs: ['simvastatin'], risk: 'safe' },
+  ],
+}
 
-  useEffect(() => {
-    // Mock patient card data
-    const mockCard: PatientWalletCard = {
-      patient_id: 'PATIENT_001',
-      patient_name: 'John Doe',
-      date_of_birth: '1980-01-15',
-      critical_interactions: [
-        {
-          drug: 'codeine',
-          gene: 'CYP2D6',
-          risk: 'adjust',
-          recommendation: 'Dose adjustment required',
-          severity: 'medium'
-        },
-        {
-          drug: 'warfarin',
-          gene: 'CYP2C9',
-          risk: 'adjust',
-          recommendation: 'Dose adjustment required',
-          severity: 'medium'
-        },
-        {
-          drug: 'simvastatin',
-          gene: 'SLCO1B1',
-          risk: 'safe',
-          recommendation: 'Standard prescribing',
-          severity: 'low'
-        }
-      ],
-      emergency_contact: '555-0123',
-      generated_at: new Date().toISOString(),
-      qr_code: 'QR_CODE_DATA_HERE'
-    }
-    setPatientCard(mockCard)
-  }, [])
-
-  const handleGenerateCard = async () => {
-    setIsGenerating(true)
-    try {
-      // In a real app, this would call your backend
-      const response = await fetch('/api/patient-card/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          patient_id: 'PATIENT_001',
-          include_qr: true,
-          format: 'digital'
-        })
-      })
-      
-      if (response.ok) {
-        const data = await response.json()
-        setPatientCard(data)
-      }
-    } catch (error) {
-      console.error('Card generation failed:', error)
-    } finally {
-      setIsGenerating(false)
-    }
-  }
-
-  const handleDownloadCard = () => {
-    // In a real app, this would trigger a download
-    const element = document.createElement('a')
-    const file = new Blob([JSON.stringify(patientCard, null, 2)], { type: 'application/json' })
-    element.href = URL.createObjectURL(file)
-    element.download = `patient-card-${patientCard?.patient_id}.json`
-    document.body.appendChild(element)
-    element.click()
-    document.body.removeChild(element)
-  }
-
-  const getRiskColor = (risk: string) => {
-    switch (risk) {
-      case 'safe': return 'text-green-400'
-      case 'adjust': return 'text-yellow-400'
-      case 'toxic': return 'text-red-400'
-      case 'ineffective': return 'text-orange-400'
-      default: return 'text-gray-400'
-    }
-  }
-
-  const getRiskIcon = (risk: string) => {
-    switch (risk) {
-      case 'safe': return <CheckCircleIcon className="w-4 h-4" />
-      case 'adjust': return <AlertTriangleIcon className="w-4 h-4" />
-      case 'toxic': return <AlertTriangleIcon className="w-4 h-4" />
-      case 'ineffective': return <AlertTriangleIcon className="w-4 h-4" />
-      default: return <ShieldCheckIcon className="w-4 h-4" />
-    }
-  }
+export default function PatientCardPage() {
+  const [isEditing, setIsEditing] = useState(false)
+  const patient = MOCK_PATIENT
 
   return (
     <div className="min-h-screen bg-black text-[#D9D9D9]">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="font-space-grotesk font-bold text-4xl sm:text-3xl lg:text-5xl text-[#D9D9D9]">
-              Patient Wallet Card
-            </h1>
-            <p className="text-xl text-[#D9D9D9] opacity-80">
-              Generate and download your pharmacogenomic patient card
-            </p>
-          </div>
-          
-          <div className="flex items-center space-x-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
+                <UserCircle className="w-5 h-5 text-blue-400" />
+              </div>
+              <h1 className="font-space-grotesk font-bold text-4xl lg:text-5xl">Patient Profile</h1>
+            </div>
             <button
-              onClick={handleGenerateCard}
-              disabled={isGenerating}
-              className="px-4 py-2 bg-[#39FF14] text-black font-space-grotesk font-semibold rounded-lg hover-lift transition-all duration-200 disabled:opacity-50"
+              onClick={() => setIsEditing(!isEditing)}
+              className="px-4 py-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-colors flex items-center gap-2 text-sm"
             >
-              {isGenerating ? 'Generating...' : 'Generate New Card'}
+              {isEditing ? <Save className="w-4 h-4 text-[#39FF14]" /> : <Edit3 className="w-4 h-4" />}
+              {isEditing ? 'Save' : 'Edit'}
             </button>
           </div>
-        </div>
+        </motion.div>
 
-        {/* Patient Card Display */}
-        {patientCard && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Patient Info */}
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: 'easeOut' }}
-            className="max-w-2xl mx-auto"
+            transition={{ delay: 0.1 }}
+            className="glass rounded-xl p-6"
           >
-            {/* Card Front */}
-            <div className="glass rounded-xl p-8 mb-6 hover-lift">
-              {/* Card Header */}
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-lg flex items-center justify-center">
-                    <UserIcon className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <h2 className="font-space-grotesk font-bold text-xl text-[#D9D9D9]">
-                      GeneDose.ai Patient Card
-                    </h2>
-                    <p className="text-sm text-[#D9D9D9] opacity-80">
-                      Pharmacogenomic Profile
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="text-right">
-                  <p className="text-sm text-[#D9D9D9] opacity-60">
-                    Generated: {new Date(patientCard.generated_at).toLocaleDateString()}
-                  </p>
-                </div>
+            <div className="text-center mb-6">
+              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#39FF14]/30 to-blue-500/20 border-2 border-[#39FF14]/40 flex items-center justify-center mx-auto mb-3">
+                <span className="text-2xl font-bold font-space-grotesk text-[#39FF14]">
+                  {patient.name.split(' ').map(n => n[0]).join('')}
+                </span>
               </div>
+              <h2 className="font-space-grotesk font-bold text-xl">{patient.name}</h2>
+              <p className="text-sm text-gray-500 font-mono">{patient.id}</p>
+            </div>
 
-              {/* Patient Information */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div>
-                  <div className="flex items-center space-x-2 mb-2">
-                    <UserIcon className="w-4 h-4 text-[#39FF14]" />
-                    <span className="text-sm text-[#D9D9D9] opacity-60">Patient Name</span>
+            <div className="space-y-3">
+              {[
+                { icon: Calendar, label: 'Date of Birth', value: new Date(patient.dateOfBirth).toLocaleDateString() },
+                { icon: UserCircle, label: 'Gender', value: patient.gender },
+                { icon: HeartPulse, label: 'Blood Type', value: patient.bloodType },
+                { icon: Mail, label: 'Email', value: patient.email },
+                { icon: Phone, label: 'Phone', value: patient.phone },
+              ].map(item => (
+                <div key={item.label} className="flex items-center gap-3 py-2 border-b border-white/5">
+                  <item.icon className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                  <div className="flex-1">
+                    <p className="text-xs text-gray-500">{item.label}</p>
+                    <p className="text-sm">{item.value}</p>
                   </div>
-                  <p className="font-space-grotesk font-semibold text-lg text-[#D9D9D9]">
-                    {patientCard.patient_name}
-                  </p>
                 </div>
-                
-                <div>
-                  <div className="flex items-center space-x-2 mb-2">
-                    <CalendarIcon className="w-4 h-4 text-[#39FF14]" />
-                    <span className="text-sm text-[#D9D9D9] opacity-60">Date of Birth</span>
-                  </div>
-                  <p className="font-space-grotesk font-semibold text-lg text-[#D9D9D9]">
-                    {patientCard.date_of_birth}
-                  </p>
-                </div>
-                
-                <div>
-                  <div className="flex items-center space-x-2 mb-2">
-                    <PhoneIcon className="w-4 h-4 text-[#39FF14]" />
-                    <span className="text-sm text-[#D9D9D9] opacity-60">Emergency Contact</span>
-                  </div>
-                  <p className="font-space-grotesk font-semibold text-lg text-[#D9D9D9]">
-                    {patientCard.emergency_contact || 'Not provided'}
-                  </p>
-                </div>
-                
-                <div>
-                  <div className="flex items-center space-x-2 mb-2">
-                    <FileTextIcon className="w-4 h-4 text-[#39FF14]" />
-                    <span className="text-sm text-[#D9D9D9] opacity-60">Patient ID</span>
-                  </div>
-                  <p className="font-space-grotesk font-semibold text-lg text-[#D9D9D9]">
-                    {patientCard.patient_id}
-                  </p>
-                </div>
-              </div>
+              ))}
+            </div>
+          </motion.div>
 
-              {/* Critical Interactions */}
-              <div className="mb-6">
-                <h3 className="font-space-grotesk font-semibold text-lg text-[#D9D9D9] mb-4">
-                  Critical Drug Interactions
-                </h3>
-                
-                <div className="space-y-3">
-                  {patientCard.critical_interactions.map((interaction, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between p-3 bg-white/5 rounded-lg"
-                    >
-                      <div className="flex items-center space-x-3">
-                        <div className={`p-2 rounded-lg ${getRiskColor(interaction.risk)} bg-opacity-20`}>
-                          {getRiskIcon(interaction.risk)}
-                        </div>
-                        <div>
-                          <p className="font-medium text-[#D9D9D9]">
-                            {interaction.drug}
-                          </p>
-                          <p className="text-sm text-[#D9D9D9] opacity-60">
-                            {interaction.gene}
-                          </p>
-                        </div>
-                      </div>
-                      
-                      <div className="text-right">
-                        <p className={`text-sm font-medium ${getRiskColor(interaction.risk)}`}>
-                          {interaction.recommendation}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* QR Code Section */}
-              <div className="flex items-center justify-center mb-6">
-                <div className="text-center">
-                  <div className="w-32 h-32 bg-white rounded-lg flex items-center justify-center mb-2">
-                    <QrCodeIcon className="w-24 h-24 text-black" />
-                  </div>
-                  <p className="text-sm text-[#D9D9D9] opacity-60">
-                    Scan for full profile
-                  </p>
-                </div>
-              </div>
-
-              {/* Footer */}
-              <div className="flex items-center justify-between pt-6 border-t border-gray-700">
-                <div className="flex items-center space-x-2">
-                  <ShieldCheckIcon className="w-4 h-4 text-[#39FF14]" />
-                  <span className="text-sm text-[#D9D9D9] opacity-60">
-                    HIPAA Compliant
-                  </span>
-                </div>
-                
-                <button
-                  onClick={handleDownloadCard}
-                  className="px-4 py-2 bg-[#39FF14] text-black font-space-grotesk font-semibold rounded-lg hover-lift transition-all duration-200"
-                >
-                  <DownloadIcon className="w-4 h-4 mr-2" />
-                  Download Card
-                </button>
+          {/* Medical Info */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="space-y-6"
+          >
+            {/* Allergies */}
+            <div className="glass rounded-xl p-5">
+              <h3 className="font-space-grotesk font-semibold mb-3 flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-red-400" />
+                Allergies
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {patient.allergies.map(a => (
+                  <span key={a} className="px-3 py-1 bg-red-500/10 border border-red-500/20 rounded-full text-xs text-red-300">{a}</span>
+                ))}
               </div>
             </div>
 
-            {/* Card Back */}
-            <div className="glass rounded-xl p-8 hover-lift">
-              <h3 className="font-space-grotesk font-semibold text-lg text-[#D9D9D9] mb-4">
-                Medical Information
+            {/* Conditions */}
+            <div className="glass rounded-xl p-5">
+              <h3 className="font-space-grotesk font-semibold mb-3 flex items-center gap-2">
+                <Activity className="w-4 h-4 text-yellow-400" />
+                Active Conditions
               </h3>
-              
-              <div className="space-y-4">
-                <div>
-                  <h4 className="font-medium text-[#D9D9D9] mb-2">Important Notes</h4>
-                  <ul className="text-sm text-[#D9D9D9] opacity-80 space-y-1">
-                    <li>• This card contains pharmacogenomic information</li>
-                    <li>• Share with healthcare providers before prescribing</li>
-                    <li>• Update profile annually or with new test results</li>
-                    <li>• Keep card with medical information</li>
-                  </ul>
-                </div>
-                
-                <div>
-                  <h4 className="font-medium text-[#D9D9D9] mb-2">Emergency Instructions</h4>
-                  <p className="text-sm text-[#D9D9D9] opacity-80">
-                    In case of emergency, show this card to medical personnel. 
-                    The QR code provides access to your complete pharmacogenomic profile.
-                  </p>
-                </div>
-                
-                <div>
-                  <h4 className="font-medium text-[#D9D9D9] mb-2">Contact Information</h4>
-                  <p className="text-sm text-[#D9D9D9] opacity-80">
-                    For questions about this card or your pharmacogenomic profile, 
-                    contact your healthcare provider or GeneDose.ai support.
-                  </p>
-                </div>
+              <div className="flex flex-wrap gap-2">
+                {patient.conditions.map(c => (
+                  <span key={c} className="px-3 py-1 bg-yellow-500/10 border border-yellow-500/20 rounded-full text-xs text-yellow-300">{c}</span>
+                ))}
+              </div>
+            </div>
+
+            {/* Current Medications */}
+            <div className="glass rounded-xl p-5">
+              <h3 className="font-space-grotesk font-semibold mb-3 flex items-center gap-2">
+                <Pill className="w-4 h-4 text-blue-400" />
+                Current Medications
+              </h3>
+              <div className="space-y-2">
+                {patient.currentMedications.map(med => (
+                  <div key={med.name} className="flex items-center justify-between py-2 border-b border-white/5">
+                    <div>
+                      <p className="text-sm font-medium">{med.name}</p>
+                      <p className="text-xs text-gray-500">{med.dose} — {med.frequency}</p>
+                    </div>
+                    <SeverityBadge riskCategory={med.risk as any} size="sm" showIcon />
+                  </div>
+                ))}
               </div>
             </div>
           </motion.div>
-        )}
+
+          {/* Recent Analyses */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="glass rounded-xl p-6"
+          >
+            <h3 className="font-space-grotesk font-semibold mb-4 flex items-center gap-2">
+              <FileText className="w-4 h-4 text-[#39FF14]" />
+              Recent Analyses
+            </h3>
+            <div className="space-y-3">
+              {patient.recentAnalyses.map(analysis => (
+                <div key={analysis.id} className="p-4 bg-white/5 rounded-xl border border-white/10 hover:border-[#39FF14]/20 transition-colors">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-mono text-[#39FF14]">{analysis.id}</span>
+                    <SeverityBadge riskCategory={analysis.risk as any} size="sm" showIcon />
+                  </div>
+                  <p className="text-xs text-gray-500 mb-1">{new Date(analysis.date).toLocaleDateString()}</p>
+                  <div className="flex flex-wrap gap-1">
+                    {analysis.drugs.map(d => (
+                      <span key={d} className="px-2 py-0.5 text-xs bg-white/5 rounded-full text-gray-400 capitalize">{d}</span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Genomic Summary */}
+            <div className="mt-6 p-4 bg-[#39FF14]/5 border border-[#39FF14]/20 rounded-xl">
+              <h4 className="text-sm font-semibold text-[#39FF14] mb-2">Genomic Summary</h4>
+              <div className="space-y-1.5 text-xs text-gray-400">
+                <div className="flex justify-between"><span>CYP2D6</span><span className="text-yellow-400">Intermediate Metabolizer</span></div>
+                <div className="flex justify-between"><span>CYP2C9</span><span className="text-red-400">Poor Metabolizer</span></div>
+                <div className="flex justify-between"><span>CYP2C19</span><span className="text-green-400">Normal Metabolizer</span></div>
+                <div className="flex justify-between"><span>SLCO1B1</span><span className="text-green-400">Normal Function</span></div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
       </div>
     </div>
   )
 }
-
-export default PatientCardPage
